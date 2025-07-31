@@ -1,0 +1,89 @@
+---
+title: "Water quality in Australia Beahes"
+author: Student A
+format: docx
+---
+
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+
+# Load packages
+library(tidyverse)
+
+water_quality <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-05-20/water_quality.csv')
+
+weather <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-05-20/weather.csv')
+```
+
+
+## Introduction
+
+-   What is the dataset **about**?
+
+This is a dataset about the water quality of Sydney's iconic beaches. It includes both water quality and historical weather data from 1991 until 2025.
+
+-   Where does the dataset **come from**?
+
+The data is available at the New South Wales State Government Beachwatch website.(https://www.beachwatch.nsw.gov.au/waterMonitoring/waterQualityData)
+
+-   What **question(s)** will you answer by analyzing the dataset?
+
+Has the water quality declined over this period? How does rainfall impact E-coli bacteria levels? Are some swimming sites particularly prone to high bacteria levels following rain?
+
+## Data visualization
+
+```{r}
+#| echo: false
+#| message: false
+
+data_Whale <- water_quality|>
+  filter(swim_site == "Whale Beach")
+
+data_quality_Whale <- data_Whale|>
+  mutate(year = year(date))|>
+  group_by(year)|>
+  summarise(mean_bacteria = mean(enterococci_cfu_100ml, na.rm = TRUE))
+
+ggplot(data = data_quality_Whale,
+mapping = aes(
+x = year,
+y = mean_bacteria
+))+
+geom_point()+
+geom_line()+
+labs(title = "How enterococci levels change")
+
+```
+
+The graph shows a change of the enterococci levels in Whale Beach. There is an big change between 1995 to 2000. This increasing trend means that the average enterococci levels in Whale Beach is becoming higher. This suggests a possible deterioration in water quality. However, in this beach, there is no tremendous surge from 2000 to 2020. In recent years, the enterococci levels has been increasing gradually, so I need to think about this trend seriously, in terms of rainfall or coastal development.
+
+```{r}
+#| echo: false
+#| message: false
+
+combined_data <- left_join(water_quality, weather, by = "date")
+
+combined_Whale <- combined_data|>
+  filter(swim_site == "Whale Beach")
+
+ggplot(data = combined_Whale,
+      mapping = aes(
+        x = precipitation_mm, 
+        y = enterococci_cfu_100ml
+      ))+
+  geom_point(na.rm = TRUE)+
+  geom_line()+
+  labs(title = "relation between rainfall and enterococci levels")
+
+```
+
+This graph shows the relation between rainfall and enterococci levels in Whale Beach. When precipitation is around 0-5mm, enterococci levels spike dramatically, reaching over 2000 cfu/100ml. It observed some peaks following moderate rainfall. As rainfall exceeds 50 mm, enterococci levels generally decrease.
+
+## Discussion
+
+From two graphs, I can see the trend of enterococci levels and the relation between it and rainfall. These analysis means how water quality in Australian Beaches is changing. I can find when it become worse, or what is influential to it.
+
+Enterococci levels shows the water quality at each beaches. This levels was so high in 1995-2000, and it was stable in 2000-2020. Recently, it has been incresing again, so it needs to try to achieve the clear water. This levels are related to weather, especially rainfall. When precipitation is low, enterococci levels high. I think it means that when there is little or no rainfall, bacteria are not flushed away and can accumulate. Moreover, human or animal activity may also contribute to this accumulation. This report shows the analysis result in Whale Beach, so I need to rethink the case of other places. The water quality is related environmental issue and human activity, so it is case by case.
+
